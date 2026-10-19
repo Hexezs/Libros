@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <!--
+  ==============================================================================
+  📚 GUÍA RÁPIDA PARA ADMINISTRAR LA BIBLIOTECA EN GITHUB PAGES
+  ==============================================================================
+  ¡Hola! Este archivo contiene toda la página web de la biblioteca de la Academia
+  de Sistemas. Está diseñado para que agregar libros sea tan fácil como copiar
+  y pegar texto.
+
+  1. ¿CÓMO AGREGAR UN NUEVO LIBRO?
+     - Busca más abajo la sección: <div id="catalogo-libros">
+     - Copia un bloque completo desde <article class="libro"> hasta </article>
+     - Pégalo debajo del último libro y cambia el código, categoría, título,
+       bibliografía y el nombre de la imagen.
+     - ¡No necesitas tocar nada de JavaScript! Los filtros de categorías y el
+       contador de libros se actualizarán automáticamente.
+
+  2. ¿CÓMO PONER LAS FOTOS DE LAS PORTADAS?
+     - En la misma carpeta donde guardes este archivo `index.html`, crea una
+       carpeta llamada `img`.
+     - Guarda ahí las fotos de los libros (pueden ser .jpg, .png, .webp).
+     - En el libro escribe la ruta, por ejemplo: src="img/java-deitel.jpg"
+     - NOTA: Si todavía no tienes la foto de un libro o el archivo no existe,
+       el sistema creará automáticamente una portada digital elegante con el
+       título, código y color de su categoría.
+
+  3. ¿CÓMO SUBIRLO A GITHUB Y CREAR EL QR?
+     - Crea un repositorio público en GitHub (ej. `biblioteca-sistemas`).
+     - Sube este archivo `index.html` y tu carpeta `img/`.
+     - Ve a Settings > Pages > en "Branch" selecciona `main` y dale a Save.
+     - En 1 minuto tendrás tu enlace web (ej. https://tu-usuario.github.io/biblioteca-sistemas/).
+     - Abre ese enlace y toca el botón de "Código QR / Ayuda" arriba a la derecha
+       para descargar el QR listo para imprimir y pegar en la biblioteca.
+  ==============================================================================
+  -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Biblioteca | Academia de Sistemas</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono para códigos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Configuración de Tailwind -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ==========================================================================
+       ESTILOS PERSONALIZADOS (CARRUSEL, PORTADAS DE LIBROS Y ANIMACIONES)
+       ========================================================================== */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Ocultar barras de scroll pero mantener funcionalidad táctil */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* ==========================================================================
+       MODO 1: VISTA CARRUSEL DESLIZABLE (SIDE-TO-SIDE SWIPE)
+       ========================================================================== */
+    #catalogo-libros.vista-carrusel {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      gap: 1.25rem;
+      padding: 1.25rem calc(50vw - 140px) 2rem calc(50vw - 140px);
+      align-items: stretch;
+    }
+
+    @media (min-width: 640px) {
+      #catalogo-libros.vista-carrusel {
+        padding: 1.5rem calc(50vw - 165px) 2.25rem calc(50vw - 165px);
+        gap: 1.75rem;
+      }
+    }
+
+    #catalogo-libros.vista-carrusel > article.libro {
+      flex: 0 0 280px;
+      width: 280px;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.35s ease;
+    }
+
+    @media (min-width: 640px) {
+      #catalogo-libros.vista-carrusel > article.libro {
+        flex: 0 0 330px;
+        width: 330px;
+      }
+    }
+
+    /* Efecto de enfoque en el libro central del carrusel */
+    #catalogo-libros.vista-carrusel > article.libro:not(.libro-activo) {
+      transform: scale(0.92);
+      opacity: 0.72;
+    }
+
+    #catalogo-libros.vista-carrusel > article.libro.libro-activo {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       MODO 2: VISTA CUADRÍCULA COMPACTA (GRID)
+       ========================================================================== */
+    #catalogo-libros.vista-cuadricula {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.875rem;
+      padding: 0.75rem 1rem 2.5rem 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 640px) {
+      #catalogo-libros.vista-cuadricula {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.25rem;
+        padding: 1rem 1.5rem 3rem 1.5rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      #catalogo-libros.vista-cuadricula {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.5rem;
+      }
+    }
+
+    /* Ajustes de tarjeta cuando está en cuadrícula */
+    #catalogo-libros.vista-cuadricula > article.libro .bibliografia {
+      display: none;
+    }
+    #catalogo-libros.vista-cuadricula > article.libro .titulo {
+      font-size: 0.92rem;
+      line-height: 1.3;
+      -webkit-line-clamp: 2;
+    }
+    #catalogo-libros.vista-cuadricula > article.libro .contenedor-portada {
+      aspect-ratio: 3 / 4;
+      padding: 0.75rem;
+    }
+
+    /* ==========================================================================
+       ESTILO DE TARJETA DE LIBRO Y PORTADA TIPO LIBRO FÍSICO
+       ========================================================================== */
+    article.libro {
+      display: flex;
+      flex-direction: column;
+      border-radius: 1.25rem;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+
+    article.libro.oculto-por-filtro {
+      display: none !important;
+    }
+
+    /* Sombra y pliegue de lomo de libro realista */
+    .marco-libro {
+      position: relative;
+      border-radius: 0.5rem 0.75rem 0.75rem 0.5rem;
+      overflow: hidden;
+      box-shadow:
+        -6px 8px 18px rgba(0, 0, 0, 0.35),
+        0 2px 6px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    article.libro:hover .marco-libro {
+      transform: translateY(-4px) rotate(-0.5deg);
+    }
+
+    /* Pliegue vertical simulando el lomo del libro */
+    .marco-libro::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.22) 0%,
+        rgba(0,0,0,0.28) 3.5%,
+        rgba(255,255,255,0.18) 5.5%,
+        rgba(255,255,255,0) 11%,
+        rgba(0,0,0,0.12) 96%,
+        rgba(0,0,0,0.32) 100%
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Truncado elegante de texto */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Animación para el Modal Bottom-Sheet */
+    .modal-backdrop {
+      transition: opacity 0.25s ease;
+    }
+    .modal-panel {
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+
+  <!-- ==========================================================================
+       1. ENCABEZADO COMPACTO Y CONTROLES PRINCIPALES
+       ========================================================================== -->
+  <header class="sticky top-0 z-30 backdrop-blur-xl bg-white/85 dark:bg-slate-900/85 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+    <div class="max-w-5xl mx-auto px-4 pt-3 pb-2.5">
+      
+      <!-- Fila Superior: Logo, Título y Botones de Utilidad -->
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- Icono Academia de Sistemas -->
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0 text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+            </svg>
+          </div>
+          <div class=" truncate">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Academia de Sistemas</span>
+              <span id="contador-total-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+                7 libros
+              </span>
+            </div>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
+              Biblioteca de Consulta
+            </h1>
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas: Alternar Vista, Tema y Guía QR/GitHub -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Botón Alternar Carrusel / Cuadrícula -->
+          <button id="btn-cambiar-vista" type="button" title="Cambiar entre vista Deslizable y Cuadrícula"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition active:scale-95">
+            <svg id="icono-vista-cuadricula" class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            </svg>
+            <svg id="icono-vista-carrusel" class="w-4 h-4 text-indigo-500 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+            </svg>
+            <span id="texto-cambiar-vista">Cuadrícula</span>
+          </button>
+
+          <!-- Botón Guía / Código QR -->
+          <button id="btn-abrir-guia" type="button" title="Código QR y Guía para agregar libros"
+            class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition active:scale-95"
+            aria-label="Código QR y Ayuda">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+            </svg>
+          </button>
+
+          <!-- Botón Modo Claro / Oscuro -->
+          <button id="btn-tema" type="button" title="Cambiar tema claro/oscuro"
+            class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition active:scale-95"
+            aria-label="Cambiar tema">
+            <!-- Icono Sol -->
+            <svg id="icono-sol" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <!-- Icono Luna -->
+            <svg id="icono-luna" class="w-4 h-4 block dark:hidden text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fila Media: Buscador en tiempo real -->
+      <div class="relative mb-2.5">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <input
+          id="input-busqueda"
+          type="search"
+          autocomplete="off"
+          placeholder="Buscar por título, código (SIS-001), autor o categoría..."
+          class="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 transition"
+        >
+        <button
+          id="btn-limpiar-busqueda"
+          type="button"
+          class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          aria-label="Limpiar búsqueda"
+        >
+          <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">✕</span>
+        </button>
+      </div>
+
+      <!-- Fila Inferior: Chips de Categorías (Generados automáticamente desde el HTML) -->
+      <div id="contenedor-categorias" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+        <!-- JavaScript insertará aquí los botones de categoría automáticamente -->
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       2. CONTENEDOR PRINCIPAL DE LIBROS (FÁCIL DE EDITAR)
+       ========================================================================== -->
+  <main class="flex-1 flex flex-col justify-center relative">
+
+    <!-- Instrucción sutil de deslizar (visible en modo carrusel) -->
+    <div id="barra-estado-carrusel" class="max-w-5xl w-full mx-auto px-4 pt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+      <div class="flex items-center gap-1.5">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="texto-instruccion-vista">Desliza de lado a lado para explorar los libros</span>
+      </div>
+      <div id="indicador-posicion-texto" class="font-mono font-semibold text-slate-700 dark:text-slate-300 bg-slate-200/70 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
+        Libro 1 de 7
+      </div>
+    </div>
+
+
+    <!-- ========================================================================
+         🚨 ZONA DE EDICIÓN DE LIBROS 🚨
+         Para agregar un libro nuevo, simplemente COPIA un bloque <article class="libro">
+         completo y PÉGALO debajo del último.
+         - Pon tus imágenes dentro de una carpeta llamada "img/" (ej. img/mi-libro.jpg).
+         - Si aún no pones la imagen, se generará una portada automática con el título.
+         ======================================================================== -->
+    <div id="catalogo-libros" class="vista-carrusel no-scrollbar">
+
+      <!-- ==========================================
+           LIBRO 1 (Copia y pega este bloque para agregar más)
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/Power of ten.jpg" alt="Portada del libro">
+        <span class="codigo">CBSIC-07</span>
+        <span class="categoria">Ciencias básicas</span>
+        <h3 class="titulo">Power of ten</h3>
+        <p class="bibliografia">Philip Morrison y Philis Morrison, 1984</p>
+      </article>
+
+      <!-- ==========================================
+           LIBRO 2
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/El principito.jpeg" alt="Portada del libro">
+        <span class="codigo">LITER-62</span>
+        <span class="categoria">Literatura</span>
+        <h3 class="titulo">El principito</h3>
+        <p class="bibliografia">Antoine de Saint-Exupéry, colección fragtales, 2025 primera edicion</p>
+      </article>
+
+      <!-- ==========================================
+           LIBRO 3
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/libro3.jpg" alt="Portada del libro">
+        <span class="codigo">SIS-003</span>
+        <span class="categoria">Bases de Datos</span>
+        <h3 class="titulo">Fundamentos de Bases de Datos</h3>
+        <p class="bibliografia">Silberschatz, A., Korth, H. F., & Sudarshan, S. (2020). Fundamentos de bases de datos (7a ed.). McGraw-Hill.</p>
+      </article>
+
+      <!-- ==========================================
+           LIBRO 4
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/Active Physics.webp" alt="Portada del libro">
+        <span class="codigo">LITER-64</span>
+        <span class="categoria">Literatura</span>
+        <h3 class="titulo">Active Physics</h3>
+        <p class="bibliografia">National Science Foundation, 2003, it´s about time inc.</p>
+      </article>
+
+      <!-- ==========================================
+           LIBRO 5
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/libro5.jpg" alt="Portada del libro">
+        <span class="codigo">SIS-005</span>
+        <span class="categoria">Ingeniería de Software</span>
+        <h3 class="titulo">Ingeniería de Software</h3>
+        <p class="bibliografia">Sommerville, I. (2016). Ingeniería de software (10a ed.). Pearson Educación.</p>
+      </article>
+
+      <!-- ==========================================
+           LIBRO 6
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/libro6.jpg" alt="Portada del libro">
+        <span class="codigo">SIS-006</span>
+        <span class="categoria">Estructuras de Datos</span>
+        <h3 class="titulo">Estructuras de Datos en C++</h3>
+        <p class="bibliografia">Joyanes Aguilar, L., & Zahonero Martínez, I. (2014). Estructuras de datos en C++ (2a ed.). McGraw-Hill.</p>
+      </article>
+
+      <!-- ==========================================
+           LIBRO 7
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/libro7.jpg" alt="Portada del libro">
+        <span class="codigo">SIS-007</span>
+        <span class="categoria">Arquitectura y SO</span>
+        <h3 class="titulo">Organización y Arquitectura de Computadores</h3>
+        <p class="bibliografia">Stallings, W. (2016). Organización y arquitectura de computadores (10a ed.). Pearson Educación.</p>
+      </article>
+
+      <!-- ==========================================
+           LIBRO 8
+           ========================================== -->
+      <article class="libro">
+        <img class="portada" src="img/libro8.jpg" alt="Portada del libro">
+        <span class="codigo">SIS-008</span>
+        <span class="categoria">Arquitectura y SO</span>
+        <h3 class="titulo">Sistemas Operativos Modernos</h3>
+        <p class="bibliografia">Tanenbaum, A. S., & Bos, H. (2015). Sistemas operativos modernos (4a ed.). Pearson Educación.</p>
+      </article>
+
+      <!-- ⬆️ PEGA AQUÍ ARRIBA TUS NUEVOS LIBROS ⬆️ -->
+
+    </div>
+    <!-- FIN DE LA ZONA DE EDICIÓN DE LIBROS -->
+
+
+    <!-- Controles Inferiores del Carrusel (Puntos de posición + Botones Anterior/Siguiente) -->
+    <div id="controles-carrusel" class="max-w-md w-full mx-auto px-4 pb-4 flex items-center justify-between gap-3">
+      <button id="btn-prev-carrusel" type="button" aria-label="Libro anterior"
+        class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 active:scale-90 transition disabled:opacity-30">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <!-- Indicadores de puntos (dots) -->
+      <div id="indicadores-puntos" class="flex items-center justify-center gap-1.5 flex-wrap max-w-[220px]">
+        <!-- Generados dinámicamente -->
+      </div>
+
+      <button id="btn-next-carrusel" type="button" aria-label="Libro siguiente"
+        class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700 active:scale-90 transition disabled:opacity-30">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Estado vacío cuando una búsqueda no arroja resultados -->
+    <div id="estado-vacio" class="hidden max-w-md mx-auto px-6 py-12 text-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-200/70 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+      </div>
+      <h3 class="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">No se encontraron libros</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+        No hay coincidencias con tu búsqueda o filtro actual.
+      </p>
+      <button id="btn-reset-filtros" type="button"
+        class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition">
+        Mostrar todos los libros
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       3. PIE DE PÁGINA DISCRETO
+       ========================================================================== -->
+  <footer class="py-3 px-4 text-center text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-200/60 dark:border-slate-800/60">
+    <span>Biblioteca Academia de Ingeniería en Sistemas • Toca cualquier libro para ver su ficha y copiar su bibliografía APA</span>
+  </footer>
+
+
+  <!-- ==========================================================================
+       4. MODAL / BOTTOM-SHEET DE DETALLE DEL LIBRO
+       ========================================================================== -->
+  <div id="modal-libro" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true">
+    <!-- Fondo oscuro desenfocado -->
+    <div id="modal-libro-backdrop" class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm opacity-0"></div>
+
+    <!-- Panel del Modal -->
+    <div id="modal-libro-panel" class="modal-panel relative z-10 w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden translate-y-full sm:translate-y-6 opacity-0 max-h-[90vh] flex flex-col">
+      
+      <!-- Barra superior tipo tirador móvil -->
+      <div class="pt-3 pb-2 px-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Ficha Bibliográfica</span>
+        </div>
+        <button id="btn-cerrar-modal" type="button"
+          class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white flex items-center justify-center transition"
+          aria-label="Cerrar ventana">
+          ✕
+        </button>
+      </div>
+
+      <!-- Contenido deslizable del modal -->
+      <div class="p-5 overflow-y-auto space-y-5">
+        <div class="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+          <!-- Portada en grande -->
+          <div class="w-40 sm:w-36 shrink-0">
+            <div class="marco-libro aspect-[3/4] bg-slate-800">
+              <img id="modal-img-portada" src="" alt="Portada" class="w-full h-full object-cover">
+            </div>
+          </div>
+
+          <!-- Datos principales -->
+          <div class="flex-1 text-center sm:text-left min-w-0">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
+              <span id="modal-codigo" class="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-600 text-white shadow-sm">
+                SIS-001
+              </span>
+              <span id="modal-categoria" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                Programación
+              </span>
+            </div>
+
+            <h2 id="modal-titulo" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white leading-snug mb-3">
+              Título del Libro
+            </h2>
+
+            <!-- Caja de Bibliografía APA -->
+            <div class="text-left bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-3.5">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                  Referencia / Bibliografía
+                </span>
+                <span class="text-[10px] font-medium text-slate-400">Formato APA</span>
+              </div>
+              <p id="modal-bibliografia" class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed select-all">
+                Bibliografía completa del libro...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción (Copiar Código y Copiar Bibliografía) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <button id="btn-copiar-codigo" type="button"
+            class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition active:scale-95">
+            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+            </svg>
+            <span>Copiar Código (<span id="btn-codigo-texto">SIS-001</span>)</span>
+          </button>
+
+          <button id="btn-copiar-bibliografia" type="button"
+            class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/25 transition active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+            </svg>
+            <span>Copiar Bibliografía</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       5. MODAL DE CÓDIGO QR Y GUÍA PARA AGREGAR LIBROS EN GITHUB
+       ========================================================================== -->
+  <div id="modal-guia" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div id="modal-guia-backdrop" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm"></div>
+
+    <div class="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+          Código QR y Cómo Agregar Libros
+        </h3>
+        <button id="btn-cerrar-guia" type="button" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+        
+        <!-- Generador QR automático del link actual -->
+        <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
+          <div class="bg-white p-2.5 rounded-xl shadow-sm shrink-0 border border-slate-200">
+            <img id="img-qr-catalogo" src="" alt="Código QR de la Biblioteca" class="w-28 h-28 object-contain">
+          </div>
+          <div class="text-center sm:text-left space-y-1.5">
+            <div class="text-xs font-bold text-slate-900 dark:text-white">Código QR de esta página</div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+              Cuando subas esta página a <strong>GitHub Pages</strong>, este código QR apuntará automáticamente al link de tu biblioteca para que los alumnos lo escaneen con su celular.
+            </p>
+            <div class="pt-1">
+              <input id="input-url-qr" type="text" placeholder="O pega aquí el link de tu GitHub Pages..."
+                class="w-full px-2.5 py-1.5 text-[11px] rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Instrucción de plantilla HTML -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
+            1. Cómo agregar más libros en el HTML
+          </h4>
+          <p>
+            Abre el archivo <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-indigo-600 dark:text-indigo-400">index.html</code> con cualquier editor de texto o directamente en GitHub y busca <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono">&lt;div id="catalogo-libros"&gt;</code>. Copia y pega este bloque cuantas veces quieras:
+          </p>
+          <pre class="p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-[11px] overflow-x-auto select-all leading-normal"><code>&lt;article class="libro"&gt;
+  &lt;img class="portada" src="img/nuevo.jpg" alt="Portada"&gt;
+  &lt;span class="codigo"&gt;SIS-009&lt;/span&gt;
+  &lt;span class="categoria"&gt;Redes&lt;/span&gt;
+  &lt;h3 class="titulo"&gt;Nombre del Libro&lt;/h3&gt;
+  &lt;p class="bibliografia"&gt;Autor (Año). Título. Editorial.&lt;/p&gt;
+&lt;/article&gt;</code></pre>
+        </div>
+
+        <div class="space-y-1.5">
+          <h4 class="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
+            2. ¿Dónde guardo las imágenes (.jpg o .png)?
+          </h4>
+          <p>
+            Crea una carpeta llamada <code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-indigo-600 dark:text-indigo-400">img</code> junto a tu archivo <code class="font-mono">index.html</code> y sube ahí las portadas. Si todavía no tienes la foto de algún libro, la página generará automáticamente una portada digital con el título y código.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       6. NOTIFICACIÓN FLOTANTE (TOAST) PARA COPIADO AL PORTAPAPELES
+       ========================================================================== -->
+  <div id="toast-notificacion" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300">
+    <div class="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold shadow-xl">
+      <span class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</span>
+      <span id="toast-mensaje">Copiado al portapapeles</span>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       7. LÓGICA JAVASCRIPT (AUTOMATIZACIÓN DEL CATÁLOGO, CARRUSEL Y BÚSQUEDA)
+       ========================================================================== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Referencias principales del DOM
+      const contenedorCatalogo = document.getElementById('catalogo-libros');
+      const inputBusqueda = document.getElementById('input-busqueda');
+      const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
+      const contenedorCategorias = document.getElementById('contenedor-categorias');
+      const contadorTotalBadge = document.getElementById('contador-total-badge');
+      const indicadorPosicionTexto = document.getElementById('indicador-posicion-texto');
+      const indicadoresPuntos = document.getElementById('indicadores-puntos');
+      const controlesCarrusel = document.getElementById('controles-carrusel');
+      const btnPrevCarrusel = document.getElementById('btn-prev-carrusel');
+      const btnNextCarrusel = document.getElementById('btn-next-carrusel');
+      const estadoVacio = document.getElementById('estado-vacio');
+      const btnResetFiltros = document.getElementById('btn-reset-filtros');
+
+      // Cambio de vista y tema
+      const btnCambiarVista = document.getElementById('btn-cambiar-vista');
+      const textoCambiarVista = document.getElementById('texto-cambiar-vista');
+      const iconoVistaCuadricula = document.getElementById('icono-vista-cuadricula');
+      const iconoVistaCarrusel = document.getElementById('icono-vista-carrusel');
+      const textoInstruccionVista = document.getElementById('texto-instruccion-vista');
+      const btnTema = document.getElementById('btn-tema');
+
+      // Estado de la aplicación
+      let categoriaSeleccionada = 'Todas';
+      let vistaActual = 'carrusel'; // 'carrusel' | 'cuadricula'
+      let indiceActivoCarrusel = 0;
+
+      // Paleta de colores según la categoría para portadas SVG automáticas y etiquetas
+      const paletasCategorias = [
+        { match: /programaci/i, bg1: '#1e1b4b', bg2: '#4338ca', accent: '#818cf8', badge: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border-indigo-500/30' },
+        { match: /base.*dato|sql|datos/i, bg1: '#064e3b', bg2: '#059669', accent: '#34d399', badge: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30' },
+        { match: /red|telecom|cisco/i, bg1: '#0c4a6e', bg2: '#0284c7', accent: '#38bdf8', badge: 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30' },
+        { match: /software|calidad|uml/i, bg1: '#4c1d95', bg2: '#7c3aed', accent: '#c084fc', badge: 'bg-purple-500/15 text-purple-600 dark:text-purple-300 border-purple-500/30' },
+        { match: /estructura|algoritm/i, bg1: '#7c2d12', bg2: '#ea580c', accent: '#fb923c', badge: 'bg-orange-500/15 text-orange-600 dark:text-orange-300 border-orange-500/30' },
+        { match: /arquitectura|operativo|hardware/i, bg1: '#134e4a', bg2: '#0d9488', accent: '#2dd4bf', badge: 'bg-teal-500/15 text-teal-600 dark:text-teal-300 border-teal-500/30' }
+      ];
+
+      function obtenerPaletaPorCategoria(categoria) {
+        for (const p of paletasCategorias) {
+          if (p.match.test(categoria)) return p;
+        }
+        return { bg1: '#1e293b', bg2: '#334155', accent: '#94a3b8', badge: 'bg-slate-500/15 text-slate-600 dark:text-slate-300 border-slate-500/30' };
+      }
+
+      // ========================================================================
+      // GENERADOR AUTOMÁTICO DE PORTADA SVG (SI LA IMAGEN LOCAL AÚN NO EXISTE)
+      // ========================================================================
+      function dividirTextoEnLineas(texto, maxCaracteresPorLinea, maxLineas) {
+        const palabras = texto.split(/\s+/);
+        const lineas = [];
+        let lineaActual = '';
+
+        for (const palabra of palabras) {
+          if ((lineaActual + ' ' + palabra).trim().length <= maxCaracteresPorLinea) {
+            lineaActual = (lineaActual + ' ' + palabra).trim();
+          } else {
+            if (lineaActual) lineas.push(lineaActual);
+            lineaActual = palabra;
+          }
+        }
+        if (lineaActual) lineas.push(lineaActual);
+
+        if (lineas.length > maxLineas) {
+          const recortadas = lineas.slice(0, maxLineas);
+          recortadas[maxLineas - 1] = recortadas[maxLineas - 1].replace(/\.*$/, '') + '…';
+          return recortadas;
+        }
+        return lineas;
+      }
+
+      function escaparXML(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&apos;');
+      }
+
+      function generarPortadaSVG({ titulo, codigo, categoria, bibliografia }) {
+        const paleta = obtenerPaletaPorCategoria(categoria);
+        const lineasTitulo = dividirTextoEnLineas(titulo, 18, 4);
+        // Extraer autor principal de la bibliografía (antes del paréntesis del año)
+        const autorCorto = (bibliografia.split('(')[0] || 'Academia de Sistemas').trim().slice(0, 32);
+
+        const tspansTitulo = lineasTitulo
+          .map((linea, idx) => `<tspan x="44" dy="${idx === 0 ? 0 : 34}">${escaparXML(linea)}</tspan>`)
+          .join('');
+
+        const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 480" width="360" height="480">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${paleta.bg1}" />
+              <stop offset="100%" stop-color="${paleta.bg2}" />
+            </linearGradient>
+            <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            </pattern>
+          </defs>
+
+          <!-- Fondo con gradiente académico -->
+          <rect width="360" height="480" fill="url(#grad)"/>
+          <rect width="360" height="480" fill="url(#grid)"/>
+
+          <!-- Círculo decorativo tecnológico -->
+          <circle cx="310" cy="70" r="110" fill="${paleta.accent}" opacity="0.12"/>
+          <circle cx="60" cy="420" r="90" fill="${paleta.accent}" opacity="0.1"/>
+
+          <!-- Lomo izquierdo decorativo -->
+          <rect x="0" y="0" width="18" height="480" fill="rgba(0,0,0,0.28)"/>
+          <line x1="22" y1="0" x2="22" y2="480" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+
+          <!-- Etiqueta Superior: Código y Categoría -->
+          <rect x="44" y="38" width="110" height="30" rx="6" fill="rgba(0,0,0,0.35)" stroke="${paleta.accent}" stroke-width="1.2"/>
+          <text x="99" y="58" font-family="monospace" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">${escaparXML(codigo)}</text>
+
+          <text x="44" y="106" font-family="sans-serif" font-size="13" font-weight="bold" fill="${paleta.accent}" letter-spacing="1.5">${escaparXML(categoria.toUpperCase())}</text>
+          <line x1="44" y1="118" x2="140" y2="118" stroke="${paleta.accent}" stroke-width="3" stroke-linecap="round"/>
+
+          <!-- Título Principal del Libro -->
+          <text x="44" y="165" font-family="sans-serif" font-size="27" font-weight="bold" fill="#ffffff">
+            ${tspansTitulo}
+          </text>
+
+          <!-- Pie de Portada: Autor y Academia -->
+          <line x1="44" y1="395" x2="320" y2="395" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <text x="44" y="422" font-family="sans-serif" font-size="14" font-weight="bold" fill="rgba(255,255,255,0.92)">${escaparXML(autorCorto)}</text>
+          <text x="44" y="444" font-family="sans-serif" font-size="11" fill="rgba(255,255,255,0.6)">BIBLIOTECA • ACADEMIA DE SISTEMAS</text>
+        </svg>`;
+
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg.trim());
+      }
+
+      // ========================================================================
+      // LECTURA Y ENRIQUECIMIENTO AUTOMÁTICO DE LOS BLOQUES <article class="libro">
+      // ========================================================================
+      const articulosLibros = Array.from(contenedorCatalogo.querySelectorAll('article.libro'));
+      const listaLibrosDatos = [];
+
+      articulosLibros.forEach((articulo, index) => {
+        const imgEl = articulo.querySelector('.portada');
+        const codigoEl = articulo.querySelector('.codigo');
+        const categoriaEl = articulo.querySelector('.categoria');
+        const tituloEl = articulo.querySelector('.titulo');
+        const bibliografiaEl = articulo.querySelector('.bibliografia');
+
+        const datos = {
+          index,
+          articulo,
+          codigo: codigoEl ? codigoEl.textContent.trim() : `SIS-${String(index + 1).padStart(3, '0')}`,
+          categoria: categoriaEl ? categoriaEl.textContent.trim() : 'General',
+          titulo: tituloEl ? tituloEl.textContent.trim() : 'Libro sin título',
+          bibliografia: bibliografiaEl ? bibliografiaEl.textContent.trim() : 'Sin bibliografía registrada.',
+          srcOriginal: imgEl ? imgEl.getAttribute('src') : ''
+        };
+
+        const paleta = obtenerPaletaPorCategoria(datos.categoria);
+        const svgFallback = generarPortadaSVG(datos);
+        datos.svgFallback = svgFallback;
+
+        // Aplicar clases de estilo a la tarjeta <article class="libro">
+        articulo.classList.add(
+          'bg-white', 'dark:bg-slate-900',
+          'border', 'border-slate-200/90', 'dark:border-slate-800',
+          'shadow-lg', 'shadow-slate-900/5', 'dark:shadow-black/40',
+          'hover:border-indigo-500/50', 'dark:hover:border-indigo-500/50'
+        );
+
+        // Configurar el fallback automático de la imagen si no existe en la carpeta img/
+        if (imgEl) {
+          imgEl.classList.add('w-full', 'h-full', 'object-cover', 'block');
+          imgEl.onerror = function () {
+            if (this.src !== svgFallback) {
+              this.src = svgFallback;
+            }
+          };
+          // Si la imagen ya falló antes de asignar el listener o está vacía
+          if (!datos.srcOriginal || (imgEl.complete && imgEl.naturalWidth === 0)) {
+            imgEl.src = svgFallback;
+          }
+        }
+
+        // Reorganizar visualmente los elementos internos manteniendo las etiquetas originales del usuario
+        const contenedorPortada = document.createElement('div');
+        contenedorPortada.className = 'contenedor-portada relative bg-gradient-to-b from-slate-100 to-slate-200/70 dark:from-slate-800/80 dark:to-slate-900 p-4 pb-3 flex items-center justify-center aspect-[4/4.3]';
+
+        const marcoLibro = document.createElement('div');
+        marcoLibro.className = 'marco-libro h-full aspect-[3/4] bg-slate-800 relative';
+        if (imgEl) marcoLibro.appendChild(imgEl);
+        contenedorPortada.appendChild(marcoLibro);
+
+        // Posicionar el código flotando en la esquina superior izquierda de la portada
+        if (codigoEl) {
+          codigoEl.className = 'codigo absolute top-3 left-3 z-10 font-mono text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-900/90 text-white dark:bg-indigo-600 shadow-md backdrop-blur-md';
+          contenedorPortada.appendChild(codigoEl);
+        }
+
+        // Cuerpo de información de la tarjeta
+        const cuerpoTarjeta = document.createElement('div');
+        cuerpoTarjeta.className = 'p-4 flex-1 flex flex-col justify-between gap-2';
+
+        const bloqueSuperior = document.createElement('div');
+        bloqueSuperior.className = 'space-y-1.5';
+
+        if (categoriaEl) {
+          categoriaEl.className = `categoria inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-md border ${paleta.badge}`;
+          bloqueSuperior.appendChild(categoriaEl);
+        }
+
+        if (tituloEl) {
+          tituloEl.className = 'titulo text-base font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-2';
+          bloqueSuperior.appendChild(tituloEl);
+        }
+
+        if (bibliografiaEl) {
+          bibliografiaEl.className = 'bibliografia text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed pt-0.5';
+          bloqueSuperior.appendChild(bibliografiaEl);
+        }
+
+        // Pie de tarjeta con indicador de toque
+        const pieTarjeta = document.createElement('div');
+        pieTarjeta.className = 'pt-2 mt-1 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-semibold text-indigo-600 dark:text-indigo-400';
+        pieTarjeta.innerHTML = `
+          <span>Ver bibliografía y código</span>
+          <span class="transition-transform group-hover:translate-x-1">→</span>
+        `;
+
+        cuerpoTarjeta.appendChild(bloqueSuperior);
+        cuerpoTarjeta.appendChild(pieTarjeta);
+
+        // Limpiar y montar dentro del mismo <article class="libro">
+        articulo.innerHTML = '';
+        articulo.appendChild(contenedorPortada);
+        articulo.appendChild(cuerpoTarjeta);
+
+        // Al tocar cualquier libro, abrir el Modal de detalle
+        articulo.addEventListener('click', () => {
+          abrirModalLibro(datos, imgEl ? imgEl.src : svgFallback);
+        });
+
+        listaLibrosDatos.push(datos);
+      });
+
+      // ========================================================================
+      // CREACIÓN AUTOMÁTICA DE LOS BOTONES DE CATEGORÍA
+      // ========================================================================
+      function generarBotonesCategorias() {
+        const conteoPorCategoria = {};
+        listaLibrosDatos.forEach(libro => {
+          conteoPorCategoria[libro.categoria] = (conteoPorCategoria[libro.categoria] || 0) + 1;
+        });
+
+        const categoriasUnicas = ['Todas', ...Object.keys(conteoPorCategoria)];
+        contenedorCategorias.innerHTML = '';
+
+        categoriasUnicas.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          const cantidad = cat === 'Todas' ? listaLibrosDatos.length : conteoPorCategoria[cat];
+          const esActiva = cat === categoriaSeleccionada;
+
+          btn.className = esActiva
+            ? 'shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 transition active:scale-95 flex items-center gap-1.5'
+            : 'shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition active:scale-95 flex items-center gap-1.5';
+
+          btn.innerHTML = `
+            <span>${cat}</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] ${esActiva ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">${cantidad}</span>
+          `;
+
+          btn.addEventListener('click', () => {
+            categoriaSeleccionada = cat;
+            generarBotonesCategorias();
+            aplicarFiltros();
+          });
+
+          contenedorCategorias.appendChild(btn);
+        });
+      }
+
+      // ========================================================================
+      // BÚSQUEDA EN TIEMPO REAL Y FILTRADO POR CATEGORÍA
+      // ========================================================================
+      function normalizarTexto(texto) {
+        return texto
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+      }
+
+      function obtenerLibrosVisibles() {
+        return listaLibrosDatos.filter(l => !l.articulo.classList.contains('oculto-por-filtro'));
+      }
+
+      function aplicarFiltros() {
+        const termino = normalizarTexto(inputBusqueda.value.trim());
+        btnLimpiarBusqueda.classList.toggle('hidden', termino.length === 0);
+
+        let visiblesCount = 0;
+
+        listaLibrosDatos.forEach(libro => {
+          const coincideCategoria =
+            categoriaSeleccionada === 'Todas' || libro.categoria === categoriaSeleccionada;
+
+          const textoBuscable = normalizarTexto(
+            `${libro.titulo} ${libro.codigo} ${libro.categoria} ${libro.bibliografia}`
+          );
+          const coincideBusqueda = termino === '' || textoBuscable.includes(termino);
+
+          if (coincideCategoria && coincideBusqueda) {
+            libro.articulo.classList.remove('oculto-por-filtro');
+            visiblesCount++;
+          } else {
+            libro.articulo.classList.add('oculto-por-filtro');
+            libro.articulo.classList.remove('libro-activo');
+          }
+        });
+
+        // Actualizar contador superior
+        contadorTotalBadge.textContent = `${visiblesCount} ${visiblesCount === 1 ? 'libro' : 'libros'}`;
+
+        // Mostrar u ocultar mensaje de estado vacío
+        const sinResultados = visiblesCount === 0;
+        estadoVacio.classList.toggle('hidden', !sinResultados);
+        contenedorCatalogo.classList.toggle('hidden', sinResultados);
+        controlesCarrusel.classList.toggle('hidden', sinResultados || vistaActual !== 'carrusel');
+
+        // Reiniciar posición del carrusel al primer libro visible
+        indiceActivoCarrusel = 0;
+        renderizarIndicadoresCarrusel();
+        actualizarLibroActivoEnCarrusel();
+
+        const visibles = obtenerLibrosVisibles();
+        if (visibles.length > 0 && vistaActual === 'carrusel') {
+          centrarLibroEnCarrusel(0, 'smooth');
+        }
+      }
+
+      inputBusqueda.addEventListener('input', aplicarFiltros);
+
+      btnLimpiarBusqueda.addEventListener('click', () => {
+        inputBusqueda.value = '';
+        inputBusqueda.focus();
+        aplicarFiltros();
+      });
+
+      btnResetFiltros.addEventListener('click', () => {
+        inputBusqueda.value = '';
+        categoriaSeleccionada = 'Todas';
+        generarBotonesCategorias();
+        aplicarFiltros();
+      });
+
+      // ========================================================================
+      // LÓGICA DEL CARRUSEL DESLIZABLE (SCROLL-SNAP, PUNTOS Y BOTONES)
+      // ========================================================================
+      function centrarLibroEnCarrusel(indice, comportamiento = 'smooth') {
+        const visibles = obtenerLibrosVisibles();
+        if (indice < 0 || indice >= visibles.length) return;
+
+        const tarjeta = visibles[indice].articulo;
+        const scrollIzquierdo =
+          tarjeta.offsetLeft - (contenedorCatalogo.clientWidth - tarjeta.clientWidth) / 2;
+
+        contenedorCatalogo.scrollTo({
+          left: scrollIzquierdo,
+          behavior: comportamiento
+        });
+      }
+
+      function renderizarIndicadoresCarrusel() {
+        const visibles = obtenerLibrosVisibles();
+        indicadoresPuntos.innerHTML = '';
+
+        visibles.forEach((_, idx) => {
+          const dot = document.createElement('button');
+          dot.type = 'button';
+          dot.setAttribute('aria-label', `Ir al libro ${idx + 1}`);
+          dot.className = idx === indiceActivoCarrusel
+            ? 'h-2 w-6 rounded-full bg-indigo-600 dark:bg-indigo-400 transition-all duration-300'
+            : 'h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 transition-all duration-300';
+
+          dot.addEventListener('click', () => {
+            centrarLibroEnCarrusel(idx, 'smooth');
+          });
+
+          indicadoresPuntos.appendChild(dot);
+        });
+      }
+
+      function actualizarLibroActivoEnCarrusel() {
+        const visibles = obtenerLibrosVisibles();
+        if (visibles.length === 0) {
+          indicadorPosicionTexto.textContent = '0 de 0';
+          return;
+        }
+
+        // Calcular qué tarjeta está más cerca del centro de la pantalla
+        const centroContenedor = contenedorCatalogo.scrollLeft + contenedorCatalogo.clientWidth / 2;
+        let menorDistancia = Infinity;
+        let indiceMasCercano = 0;
+
+        visibles.forEach((item, idx) => {
+          const tarjeta = item.articulo;
+          const centroTarjeta = tarjeta.offsetLeft + tarjeta.clientWidth / 2;
+          const distancia = Math.abs(centroContenedor - centroTarjeta);
+          if (distancia < menorDistancia) {
+            menorDistancia = distancia;
+            indiceMasCercano = idx;
+          }
+        });
+
+        indiceActivoCarrusel = indiceMasCercano;
+
+        visibles.forEach((item, idx) => {
+          item.articulo.classList.toggle('libro-activo', idx === indiceActivoCarrusel);
+        });
+
+        indicadorPosicionTexto.textContent = `Libro ${indiceActivoCarrusel + 1} de ${visibles.length}`;
+        btnPrevCarrusel.disabled = indiceActivoCarrusel <= 0;
+        btnNextCarrusel.disabled = indiceActivoCarrusel >= visibles.length - 1;
+
+        // Actualizar estado visual de los puntos inferiores
+        const dots = Array.from(indicadoresPuntos.children);
+        dots.forEach((dot, idx) => {
+          dot.className = idx === indiceActivoCarrusel
+            ? 'h-2 w-6 rounded-full bg-indigo-600 dark:bg-indigo-400 transition-all duration-300'
+            : 'h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 transition-all duration-300';
+        });
+      }
+
+      let scrollTimeout;
+      contenedorCatalogo.addEventListener('scroll', () => {
+        if (vistaActual !== 'carrusel') return;
+        if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
+        scrollTimeout = requestAnimationFrame(actualizarLibroActivoEnCarrusel);
+      }, { passive: true });
+
+      btnPrevCarrusel.addEventListener('click', () => {
+        centrarLibroEnCarrusel(indiceActivoCarrusel - 1, 'smooth');
+      });
+
+      btnNextCarrusel.addEventListener('click', () => {
+        centrarLibroEnCarrusel(indiceActivoCarrusel + 1, 'smooth');
+      });
+
+      // Soporte para flechas del teclado cuando se consulta en PC
+      document.addEventListener('keydown', (e) => {
+        const modalAbierto = !document.getElementById('modal-libro').classList.contains('hidden') ||
+                             !document.getElementById('modal-guia').classList.contains('hidden');
+        if (modalAbierto) {
+          if (e.key === 'Escape') {
+            cerrarModalLibro();
+            cerrarModalGuia();
+          }
+          return;
+        }
+        if (document.activeElement === inputBusqueda) return;
+
+        if (vistaActual === 'carrusel') {
+          if (e.key === 'ArrowLeft') centrarLibroEnCarrusel(indiceActivoCarrusel - 1, 'smooth');
+          if (e.key === 'ArrowRight') centrarLibroEnCarrusel(indiceActivoCarrusel + 1, 'smooth');
+        }
+      });
+
+      // ========================================================================
+      // ALTERNAR ENTRE VISTA CARRUSEL (DESLIZABLE) Y CUADRÍCULA (COMPACTA)
+      // ========================================================================
+      btnCambiarVista.addEventListener('click', () => {
+        if (vistaActual === 'carrusel') {
+          vistaActual = 'cuadricula';
+          contenedorCatalogo.classList.remove('vista-carrusel');
+          contenedorCatalogo.classList.add('vista-cuadricula');
+          textoCambiarVista.textContent = 'Carrusel';
+          iconoVistaCuadricula.classList.add('hidden');
+          iconoVistaCarrusel.classList.remove('hidden');
+          controlesCarrusel.classList.add('hidden');
+          textoInstruccionVista.textContent = 'Vista en cuadrícula • Toca un libro para ver su ficha';
+        } else {
+          vistaActual = 'carrusel';
+          contenedorCatalogo.classList.remove('vista-cuadricula');
+          contenedorCatalogo.classList.add('vista-carrusel');
+          textoCambiarVista.textContent = 'Cuadrícula';
+          iconoVistaCarrusel.classList.add('hidden');
+          iconoVistaCuadricula.classList.remove('hidden');
+          const visibles = obtenerLibrosVisibles();
+          controlesCarrusel.classList.toggle('hidden', visibles.length === 0);
+          textoInstruccionVista.textContent = 'Desliza de lado a lado para explorar los libros';
+          setTimeout(() => {
+            centrarLibroEnCarrusel(indiceActivoCarrusel, 'auto');
+            actualizarLibroActivoEnCarrusel();
+          }, 50);
+        }
+      });
+
+      // ========================================================================
+      // CAMBIO DE TEMA CLARO / OSCURO
+      // ========================================================================
+      btnTema.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+      });
+
+      // ========================================================================
+      // MODAL DE DETALLE DEL LIBRO Y COPIADO AL PORTAPAPELES
+      // ========================================================================
+      const modalLibro = document.getElementById('modal-libro');
+      const modalLibroBackdrop = document.getElementById('modal-libro-backdrop');
+      const modalLibroPanel = document.getElementById('modal-libro-panel');
+      const btnCerrarModal = document.getElementById('btn-cerrar-modal');
+      const modalImgPortada = document.getElementById('modal-img-portada');
+      const modalCodigo = document.getElementById('modal-codigo');
+      const modalCategoria = document.getElementById('modal-categoria');
+      const modalTitulo = document.getElementById('modal-titulo');
+      const modalBibliografia = document.getElementById('modal-bibliografia');
+      const btnCopiarCodigo = document.getElementById('btn-copiar-codigo');
+      const btnCodigoTexto = document.getElementById('btn-codigo-texto');
+      const btnCopiarBibliografia = document.getElementById('btn-copiar-bibliografia');
+
+      let libroSeleccionadoActual = null;
+
+      function abrirModalLibro(datos, srcActual) {
+        libroSeleccionadoActual = datos;
+        modalImgPortada.src = srcActual || datos.svgFallback;
+        modalImgPortada.onerror = function () {
+          this.src = datos.svgFallback;
+        };
+        modalCodigo.textContent = datos.codigo;
+        modalCategoria.textContent = datos.categoria;
+        modalTitulo.textContent = datos.titulo;
+        modalBibliografia.textContent = datos.bibliografia;
+        btnCodigoTexto.textContent = datos.codigo;
+
+        modalLibro.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          modalLibroBackdrop.classList.remove('opacity-0');
+          modalLibroPanel.classList.remove('translate-y-full', 'sm:translate-y-6', 'opacity-0');
+        });
+      }
+
+      function cerrarModalLibro() {
+        modalLibroBackdrop.classList.add('opacity-0');
+        modalLibroPanel.classList.add('translate-y-full', 'sm:translate-y-6', 'opacity-0');
+        setTimeout(() => {
+          modalLibro.classList.add('hidden');
+        }, 250);
+      }
+
+      btnCerrarModal.addEventListener('click', cerrarModalLibro);
+      modalLibroBackdrop.addEventListener('click', cerrarModalLibro);
+
+      // Función segura de copiado compatible con móviles e iframes
+      function copiarTextoAlPortapapeles(texto, mensajeExito) {
+        const areaTemporal = document.createElement('textarea');
+        areaTemporal.value = texto;
+        areaTemporal.style.position = 'fixed';
+        areaTemporal.style.left = '-9999px';
+        document.body.appendChild(areaTemporal);
+        areaTemporal.focus();
+        areaTemporal.select();
+
+        try {
+          document.execCommand('copy');
+          mostrarToast(mensajeExito);
+        } catch (err) {
+          mostrarToast('No se pudo copiar automáticamente');
+        }
+        document.body.removeChild(areaTemporal);
+      }
+
+      btnCopiarCodigo.addEventListener('click', () => {
+        if (!libroSeleccionadoActual) return;
+        copiarTextoAlPortapapeles(
+          libroSeleccionadoActual.codigo,
+          `Código ${libroSeleccionadoActual.codigo} copiado`
+        );
+      });
+
+      btnCopiarBibliografia.addEventListener('click', () => {
+        if (!libroSeleccionadoActual) return;
+        copiarTextoAlPortapapeles(
+          libroSeleccionadoActual.bibliografia,
+          'Bibliografía APA copiada al portapapeles'
+        );
+      });
+
+      // ========================================================================
+      // NOTIFICACIÓN TOAST
+      // ========================================================================
+      const toastNotificacion = document.getElementById('toast-notificacion');
+      const toastMensaje = document.getElementById('toast-mensaje');
+      let toastTimer;
+
+      function mostrarToast(mensaje) {
+        toastMensaje.textContent = mensaje;
+        toastNotificacion.classList.remove('opacity-0', 'translate-y-3');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastNotificacion.classList.add('opacity-0', 'translate-y-3');
+        }, 2400);
+      }
+
+      // ========================================================================
+      // MODAL DE GUÍA GITHUB Y GENERADOR AUTOMÁTICO DE CÓDIGO QR
+      // ========================================================================
+      const btnAbrirGuia = document.getElementById('btn-abrir-guia');
+      const modalGuia = document.getElementById('modal-guia');
+      const modalGuiaBackdrop = document.getElementById('modal-guia-backdrop');
+      const btnCerrarGuia = document.getElementById('btn-cerrar-guia');
+      const imgQrCatalogo = document.getElementById('img-qr-catalogo');
+      const inputUrlQr = document.getElementById('input-url-qr');
+
+      function actualizarImagenQR(urlTexto) {
+        const urlLimpia = (urlTexto || window.location.href || 'https://github.com').trim();
+        imgQrCatalogo.src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(urlLimpia)}`;
+      }
+
+      function abrirModalGuia() {
+        if (!inputUrlQr.value) {
+          const urlActual = window.location.href.startsWith('http')
+            ? window.location.href
+            : 'https://tu-usuario.github.io/biblioteca-sistemas/';
+          inputUrlQr.value = urlActual;
+        }
+        actualizarImagenQR(inputUrlQr.value);
+        modalGuia.classList.remove('hidden');
+      }
+
+      function cerrarModalGuia() {
+        modalGuia.classList.add('hidden');
+      }
+
+      btnAbrirGuia.addEventListener('click', abrirModalGuia);
+      btnCerrarGuia.addEventListener('click', cerrarModalGuia);
+      modalGuiaBackdrop.addEventListener('click', cerrarModalGuia);
+
+      inputUrlQr.addEventListener('input', (e) => {
+        actualizarImagenQR(e.target.value);
+      });
+
+      // ========================================================================
+      // INICIALIZACIÓN AL CARGAR LA PÁGINA
+      // ========================================================================
+      generarBotonesCategorias();
+      aplicarFiltros();
+      setTimeout(() => {
+        centrarLibroEnCarrusel(0, 'auto');
+        actualizarLibroActivoEnCarrusel();
+      }, 60);
+    });
+  </script>
+</body>
+</html>
